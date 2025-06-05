@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Compound Interest Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: rgb(188, 192, 252);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      margin-top: 40px;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 550px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .slider-section {
+      margin-bottom: 1.5rem;
+    }
+    .slider-section label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .slider-section input[type=range] {
+      width: 100%;
+    }
+    .slider-value {
+      text-align: right;
+      font-size: 0.95rem;
+      margin-top: 0.3rem;
+      font-weight: 500;
+    }
+    .results {
+      background-color: #f9fafb;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1.5rem;
+    }
+    .results p {
+      margin: 0.5rem 0;
+      font-weight: 500;
+    }
+    svg {
+      width: 100%;
+      height: 150px;
+      margin-top: 1.5rem;
+    }
+    .bar-label {
+      font-size: 12px;
+      text-anchor: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Compound Interest Calculator</h2>
+
+    <!-- Principal Slider -->
+    <div class="slider-section">
+      <label for="principal">Principal Amount (₹):</label>
+      <input type="range" id="principal" min="1000" max="1000000" step="1000" value="50000" />
+      <div class="slider-value">₹<span id="principal-val">50,000</span></div>
+    </div>
+
+    <!-- Interest Rate Slider -->
+    <div class="slider-section">
+      <label for="rate">Annual Interest Rate (%):</label>
+      <input type="range" id="rate" min="0" max="20" step="0.1" value="7" />
+      <div class="slider-value"><span id="rate-val">7</span>%</div>
+    </div>
+
+    <!-- Years Slider -->
+    <div class="slider-section">
+      <label for="years">Investment Duration (Years):</label>
+      <input type="range" id="years" min="1" max="30" step="1" value="10" />
+      <div class="slider-value"><span id="years-val">10</span> years</div>
+    </div>
+
+    <!-- Frequency Slider -->
+    <div class="slider-section">
+      <label for="frequency">Compounding Frequency:</label>
+      <input type="range" id="frequency" min="1" max="12" step="1" value="12" />
+      <div class="slider-value"><span id="frequency-val">Monthly (12)</span></div>
+    </div>
+
+    <!-- Results -->
+    <div class="results">
+      <p>Total Investment: ₹<span id="total-investment">0</span></p>
+      <p>Total Interest Earned: ₹<span id="total-interest">0</span></p>
+      <p>Maturity Amount: ₹<span id="maturity-amount">0</span></p>
+    </div>
+    <!-- SVG Bar Graph -->
+    <svg viewBox="0 0 300 150">
+      <rect id="bar-principal" x="50" y="50" width="40" height="0" fill="#4e73df" />
+      <rect id="bar-total" x="150" y="50" width="40" height="0" fill="#1a237e" />
+      <text x="70" y="140" class="bar-label">Principal</text>
+      <text x="170" y="140" class="bar-label">Total</text>
+    </svg>
+  </div>
+
+  <script>
+    const principalSlider = document.getElementById('principal');
+    const rateSlider = document.getElementById('rate');
+    const yearsSlider = document.getElementById('years');
+    const frequencySlider = document.getElementById('frequency');
+
+    const principalVal = document.getElementById('principal-val');
+    const rateVal = document.getElementById('rate-val');
+    const yearsVal = document.getElementById('years-val');
+    const frequencyVal = document.getElementById('frequency-val');
+
+    const totalInvestmentEl = document.getElementById('total-investment');
+    const totalInterestEl = document.getElementById('total-interest');
+    const maturityAmountEl = document.getElementById('maturity-amount');
+
+    const barPrincipal = document.getElementById('bar-principal');
+    const barTotal = document.getElementById('bar-total');
+
+    const freqLabelMap = {
+      1: 'Annually (1)',
+      2: 'Semi-Annually (2)',
+      4: 'Quarterly (4)',
+      12: 'Monthly (12)'
+    };
+
+    [principalSlider, rateSlider, yearsSlider, frequencySlider].forEach(slider => {
+      slider.addEventListener('input', update);
+    });
+
+    function update() {
+      const P = parseFloat(principalSlider.value);
+      const r = parseFloat(rateSlider.value) / 100;
+      const t = parseInt(yearsSlider.value);
+      const n = parseInt(frequencySlider.value);
+
+      const A = P * Math.pow(1 + r / n, n * t);
+      const totalInvestment = P;
+      const totalInterest = A - P;
+
+      // Update slider values
+      principalVal.textContent = P.toLocaleString('en-IN');
+      rateVal.textContent = rateSlider.value;
+      yearsVal.textContent = t;
+      frequencyVal.textContent = freqLabelMap[n] || `Every ${n} times/year`;
+
+      // Update results
+      totalInvestmentEl.textContent = totalInvestment.toFixed(2);
+      totalInterestEl.textContent = totalInterest.toFixed(2);
+      maturityAmountEl.textContent = A.toFixed(2);
+
+      // Update bar graph (SVG)
+      const maxHeight = 80;
+      const maxValue = Math.max(A, P);
+      const principalHeight = (P / maxValue) * maxHeight;
+      const totalHeight = (A / maxValue) * maxHeight;
+
+      barPrincipal.setAttribute("y", 130 - principalHeight);
+      barPrincipal.setAttribute("height", principalHeight);
+
+      barTotal.setAttribute("y", 130 - totalHeight);
+      barTotal.setAttribute("height", totalHeight);
+    }
+
+    update(); // Initial render
+  </script>
+</body>
+</html>
 
